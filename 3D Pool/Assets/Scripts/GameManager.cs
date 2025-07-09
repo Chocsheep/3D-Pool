@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -34,6 +35,11 @@ public class GameManager : MonoBehaviour
     void Update()
     {
 
+    }
+
+    public void RestartTheGame()
+    {
+        SceneManager.LoadScene(0);
     }
 
     bool Scratch()
@@ -89,6 +95,67 @@ public class GameManager : MonoBehaviour
 
     bool CheckBall(Ball ball)
     {
+        if (ball.IsClueBall())
+        {
+            if (Scratch())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (ball.IsEightBall())
+        {
+            if (currentPlayer == CurrentPlayer.Player1)
+            {
+                if (isWinningShotForPlayer1)
+                {
+                    Win("Player 1");
+                    return true;
+                }
+            }
+            else
+            {
+                if (isWinningShotForPlayer2)
+                {
+                    Win("Player 2");
+                    return true;
+                }
+            }
+            EarlyEightBall();
+        }
+        else
+        {
+            // If not Eight or Cue Ball, it is a red/blue ball
+            if (ball.IsBallRed())
+            {
+                player1BallsRemaining--;
+                player1BallsText.text = "Player 1 Balls Remaining: " + player1BallsRemaining;
+                if (player1BallsRemaining <= 0)
+                {
+                    isWinningShotForPlayer1 = true;
+                }
+                if (currentPlayer != CurrentPlayer.Player1)
+                {
+                    NextPlayerTurn();
+                }
+            }
+            else
+            {
+                player2BallsRemaining--;
+                player2BallsText.text = "Player 2 Balls Remaining: " + player2BallsRemaining;
+                if (player2BallsRemaining <= 0)
+                {
+                    isWinningShotForPlayer2 = true;
+                }
+                if (currentPlayer != CurrentPlayer.Player2)
+                {
+                    NextPlayerTurn();
+                }
+            }
+        }
         return true;
     }
 
@@ -108,11 +175,32 @@ public class GameManager : MonoBehaviour
 
     void NextPlayerTurn()
     {
-
+        if (currentPlayer == CurrentPlayer.Player1)
+        {
+            currentPlayer = CurrentPlayer.Player2;
+            currentTurnText.text = "Current Turn: Player 2";
+        }
+        else
+        {
+            currentPlayer = CurrentPlayer.Player1;
+            currentTurnText.text = "Current Turn: Player 1";
+        }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        
+        if (other.gameObject.tag == "Ball")
+        {
+            if (CheckBall(other.gameObject.GetComponent<Ball>()))
+            {
+                Destroy(other.gameObject);
+            }
+            else
+            {
+                other.gameObject.transform.position = headPosition.position;
+                other.gameObject.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+                other.gameObject.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            }
+        }
     }
 }
