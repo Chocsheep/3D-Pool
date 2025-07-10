@@ -10327,7 +10327,7 @@ MonoBehaviour:
   rotationSpeed: 720
   offset: {x: 1.5, y: 0.88, z: 0}
   downAngle: 27
-  power: 5
+  power: 1
 --- !u!1001 &1545443049
 PrefabInstance:
   m_ObjectHideFlags: 0
