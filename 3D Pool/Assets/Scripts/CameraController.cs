@@ -1,10 +1,12 @@
+using System.Numerics;
 using UnityEngine;
 
 public class NewMonoBehaviourScript : MonoBehaviour
 {
     [SerializeField] float rotationSpeed;
-    [SerializeField] Vector3 offset;
+    [SerializeField] UnityEngine.Vector3 offset;
     [SerializeField] float downAngle;
+    [SerializeField] float power;
     private float horizontalInput;
 
     Transform cueBall;
@@ -31,7 +33,20 @@ public class NewMonoBehaviourScript : MonoBehaviour
         {
             horizontalInput = Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
 
-            transform.RotateAround(cueBall.position, Vector3.up, horizontalInput);
+            transform.RotateAround(cueBall.position, UnityEngine.Vector3.up, horizontalInput);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            ResetCamera();
+        }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            UnityEngine.Vector3 hitDirection = transform.forward;
+            hitDirection = new UnityEngine.Vector3(hitDirection.x, 0, hitDirection.z).normalized;
+
+            cueBall.gameObject.GetComponent<Rigidbody>().AddForce(hitDirection * power, ForceMode.Impulse);
         }
     }
 
@@ -39,6 +54,6 @@ public class NewMonoBehaviourScript : MonoBehaviour
     {
         transform.position = cueBall.position + offset;
         transform.LookAt(cueBall.position);
-        transform.localEulerAngles = new Vector3(downAngle, transform.localEulerAngles.y, 0);
+        transform.localEulerAngles = new UnityEngine.Vector3(downAngle, transform.localEulerAngles.y, 0);
     }
 }
