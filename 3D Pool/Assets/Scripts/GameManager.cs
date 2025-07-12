@@ -432,9 +432,13 @@ public class GameManager : MonoBehaviour
 
         if (ball.IsEightBall())
         {
-            // Only legal if player is on the 8-ball (end game)
-            if (currentPlayer == CurrentPlayer.Player1 && !isWinningShotForPlayer1) foul = true;
-            if (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2) foul = true;
+        if ((currentPlayer == CurrentPlayer.Player1 && !isWinningShotForPlayer1) ||
+            (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2))
+        {
+            UnityEngine.Debug.Log("Foul: Hit the 8-ball too early");
+            foul = true;
+        }
+        // Else: valid 8-ball shot (on winning shot), no foul
         }
         else if (ball.IsBallRed() && currentPlayer != CurrentPlayer.Player1)
         {

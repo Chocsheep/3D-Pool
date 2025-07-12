@@ -76,38 +76,28 @@ public class Ball : MonoBehaviour
     }
 
     void OnCollisionEnter(Collision collision)
-{
-    // Register cushion or pocket contact for any ball
-    if (collision.collider.CompareTag("Cushion"))
     {
-        FindFirstObjectByType<GameManager>().RegisterCushionOrPocket();
-    }
+        Ball self = GetComponent<Ball>();
+        if (!self.IsClueBall()) return;
 
-    Ball self = GetComponent<Ball>();
+        // Register cushion or pocket contact
+        if (collision.collider.CompareTag("Cushion"))
+        {
+            FindFirstObjectByType<GameManager>().RegisterCushionOrPocket();
+        }
 
-    // This block only applies to the cue ball
-    if (self.IsClueBall())
-    {
+        // If we hit another ball
         if (collision.gameObject.CompareTag("Ball"))
         {
-            // Register first hit for foul logic (wrong ball first)
-            FindFirstObjectByType<GameManager>().RegisterFirstHit(collision.gameObject);
-
-            // Check if it's hitting a DIFFERENT ball (not itself)
             Ball other = collision.gameObject.GetComponent<Ball>();
             if (other != null && !other.IsClueBall())
             {
-                // ✅ Whiff-shot detection: cue ball hit something
+                // ✅ Foul detection: wrong ball first
+                FindFirstObjectByType<GameManager>().RegisterFirstHit(collision.gameObject);
+
+                // ✅ Cue ball made valid contact
                 FindFirstObjectByType<GameManager>().cueBallHitOtherBall = true;
             }
         }
-
-        if (collision.collider.CompareTag("Cushion"))
-        {
-            // cue ball hitting cushion also counts
-            FindFirstObjectByType<GameManager>().RegisterCushionOrPocket();
-        }
     }
-}
-
 }
