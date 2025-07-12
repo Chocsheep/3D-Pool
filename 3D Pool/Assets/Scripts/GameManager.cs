@@ -36,6 +36,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] Camera cueStickCamera;
     [SerializeField] Camera overheadCamera;
     Camera currentCamera;
+    bool isBallInHand = false;
+    GameObject cueBall;
+    int defaultCueBallLayer;
+
+
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -43,6 +49,16 @@ public class GameManager : MonoBehaviour
         currentPlayer = CurrentPlayer.Player1;
         currentCamera = cueStickCamera;
         currentTimer = shotTimer;
+
+        foreach (GameObject ball in GameObject.FindGameObjectsWithTag("Ball"))
+        {
+            if (ball.GetComponent<Ball>().IsClueBall())
+            {
+                cueBall = ball;
+                break;
+            }
+        }
+        defaultCueBallLayer = cueBall.layer;
     }
 
     // Update is called once per frame
@@ -67,6 +83,13 @@ public class GameManager : MonoBehaviour
             if (allStopped)
             {
                 isWaitingForBallMovementToStop = false;
+
+                if (isBallInHand)
+                {
+                    // Don't switch turns or cameras; let user place the ball
+                    return;
+                }
+
                 if (willSwapPlayers || !ballPocketed)
                 {
                     NextPlayerTurn();
@@ -79,7 +102,88 @@ public class GameManager : MonoBehaviour
                 ballPocketed = false;
             }
         }
+    if (isBallInHand)
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = overheadCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100f))
+            {
+                Vector3 newPosition = new Vector3(hit.point.x, cueBall.transform.position.y, hit.point.z);
+
+                // Check for overlaps with other balls (excluding cue ball itself)
+                Collider[] overlaps = Physics.OverlapSphere(newPosition, 0.05f);
+                bool validPosition = true;
+
+                foreach (var col in overlaps)
+                {
+                    if (col.gameObject != cueBall && col.CompareTag("Ball"))
+                    {
+                        validPosition = false;
+                        break;
+                    }
+                }
+
+                if (validPosition)
+                {
+                    cueBall.transform.position = newPosition;
+                    cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+                    cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonDown(1)) // Right-click to confirm
+        {
+            isBallInHand = false;
+            messageText.gameObject.SetActive(false);
+
+            // Restore collisions
+            cueBall.layer = defaultCueBallLayer;
+            cueBall.GetComponent<Collider>().isTrigger = false;
+
+            currentCamera = overheadCamera; // force camera state so SwitchCameras works
+            cueBall.GetComponent<Rigidbody>().useGravity = true; // Re-enable gravity
+            SwitchCameras();
+        }
+
+        return; // prevent rest of Update from running
     }
+
+    }
+
+    public void HandleFoul()
+    {
+        // Switch players
+        if (currentPlayer == CurrentPlayer.Player1)
+        {
+            currentPlayer = CurrentPlayer.Player2;
+            currentTurnText.text = "Current Turn: Player 2";
+        }
+        else
+        {
+            currentPlayer = CurrentPlayer.Player1;
+            currentTurnText.text = "Current Turn: Player 1";
+        }
+
+        isBallInHand = true;
+        isWaitingForBallMovementToStop = false;
+        cueBall.GetComponent<Rigidbody>().useGravity = false; // Disable gravity
+
+        cueBall.layer = LayerMask.NameToLayer("GhostBall"); // Disable collisions
+        cueBall.GetComponent<Collider>().isTrigger = true;
+
+        currentCamera = overheadCamera;
+        overheadCamera.enabled = true;
+        cueStickCamera.enabled = false;
+
+        messageText.gameObject.SetActive(true);
+        messageText.text = "Foul! Move the cue ball anywhere. Right-click to confirm.";
+    }
+
+
+
 
     public void SwitchCameras()
     {
@@ -100,7 +204,7 @@ public class GameManager : MonoBehaviour
     }
     public void RestartTheGame()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 
     bool Scratch()
@@ -122,6 +226,7 @@ public class GameManager : MonoBehaviour
             }
         }
         willSwapPlayers = true;
+        HandleFoul();
         return false;
     }
 

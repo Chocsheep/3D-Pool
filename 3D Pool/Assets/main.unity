@@ -2956,7 +2956,7 @@ Transform:
   m_GameObject: {fileID: 636569963}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.489, y: 0.731, z: -1.8584}
+  m_LocalPosition: {x: 7.528, y: 0.731, z: -1.8584}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10510,9 +10510,9 @@ MonoBehaviour:
   rotationSpeed: 720
   offset: {x: 1.5, y: 0.88, z: 0}
   downAngle: 27
-  power: 1
+  power: 0.25
   cueStick: {fileID: 6909909669552108114}
-  maxDrawDistance: -5
+  maxDrawDistance: -20
   powerText: {fileID: 1314853240}
 --- !u!1001 &1545443049
 PrefabInstance:
@@ -13685,7 +13685,7 @@ GameObject:
   - component: {fileID: 509270511}
   m_Layer: 0
   m_Name: Billiard Table_Fabric
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
