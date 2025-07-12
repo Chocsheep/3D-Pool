@@ -81,6 +81,7 @@ public class CameraController : MonoBehaviour
                     hitDirection = new UnityEngine.Vector3(hitDirection.x, 0, hitDirection.z).normalized;
 
                     cueBall.gameObject.GetComponent<Rigidbody>().AddForce(hitDirection * power * Mathf.Abs(savedMousePosition), ForceMode.Impulse);
+                    FindFirstObjectByType<GameManager>().CueBallShotStarted();
                     cueStick.SetActive(false);
                     gameManager.SwitchCameras();
                     isTakingShot = false;

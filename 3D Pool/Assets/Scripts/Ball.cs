@@ -39,7 +39,7 @@ public class Ball : MonoBehaviour
     {
         return isRed;
     }
-    
+
     public bool IsClueBall()
     {
         return isCueBall;
@@ -74,4 +74,40 @@ public class Ball : MonoBehaviour
         is8ball = true;
         GetComponent<Renderer>().material.color = Color.black;
     }
+
+    void OnCollisionEnter(Collision collision)
+{
+    // Register cushion or pocket contact for any ball
+    if (collision.collider.CompareTag("Cushion"))
+    {
+        FindFirstObjectByType<GameManager>().RegisterCushionOrPocket();
+    }
+
+    Ball self = GetComponent<Ball>();
+
+    // This block only applies to the cue ball
+    if (self.IsClueBall())
+    {
+        if (collision.gameObject.CompareTag("Ball"))
+        {
+            // Register first hit for foul logic (wrong ball first)
+            FindFirstObjectByType<GameManager>().RegisterFirstHit(collision.gameObject);
+
+            // Check if it's hitting a DIFFERENT ball (not itself)
+            Ball other = collision.gameObject.GetComponent<Ball>();
+            if (other != null && !other.IsClueBall())
+            {
+                // ✅ Whiff-shot detection: cue ball hit something
+                FindFirstObjectByType<GameManager>().cueBallHitOtherBall = true;
+            }
+        }
+
+        if (collision.collider.CompareTag("Cushion"))
+        {
+            // cue ball hitting cushion also counts
+            FindFirstObjectByType<GameManager>().RegisterCushionOrPocket();
+        }
+    }
+}
+
 }

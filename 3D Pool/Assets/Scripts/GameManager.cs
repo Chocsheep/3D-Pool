@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -40,12 +41,23 @@ public class GameManager : MonoBehaviour
     GameObject cueBall;
     int defaultCueBallLayer;
     private bool isCueBallPlaced = false;
+    private bool DidBallHitCushionOrPocket = false;
+    private bool breakingShot = false;
+    private bool firstHit = true;
+    private bool cueBallShotInProgress = false;
+    public bool cueBallHitOtherBall = false;
+
+
+
 
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        breakingShot = true;
+        DidBallHitCushionOrPocket = false;
+
         currentPlayer = CurrentPlayer.Player1;
         currentCamera = cueStickCamera;
         currentTimer = shotTimer;
@@ -63,113 +75,134 @@ public class GameManager : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-{
-    // Step 1: Handle Ball-in-Hand placement
-    if (isBallInHand)
     {
-        HandleBallInHand();
-        return;
-    }
-
-    // Step 2: Handle post-shot waiting logic
-    if (isWaitingForBallMovementToStop && !isGameOver)
-    {
-        // Wait for the currentTimer buffer (e.g. 3 seconds)
-        currentTimer -= Time.deltaTime;
-        if (currentTimer > 0)
+        // Step 1: Handle Ball-in-Hand placement
+        if (isBallInHand)
         {
+            HandleBallInHand();
             return;
         }
 
-        // Check if all balls have stopped
-        bool allStopped = true;
-        foreach (GameObject ball in GameObject.FindGameObjectsWithTag("Ball"))
+        // Step 2: Handle post-shot waiting logic
+        if (isWaitingForBallMovementToStop && !isGameOver)
         {
-            if (ball.GetComponent<Rigidbody>().linearVelocity.magnitude >= movementThreshold)
+            // Wait for the currentTimer buffer (e.g. 3 seconds)
+            currentTimer -= Time.deltaTime;
+            if (currentTimer > 0)
             {
-                allStopped = false;
-                break;
-            }
-        }
-
-        if (allStopped)
-        {
-            isWaitingForBallMovementToStop = false;
-
-            // Only skip to next player if necessary
-            if (willSwapPlayers || !ballPocketed)
-            {
-                NextPlayerTurn();
-            }
-            else
-            {
-                SwitchCameras();
+                return;
             }
 
-            currentTimer = shotTimer;
-            ballPocketed = false;
-        }
-    }
-}
-
-
-    void HandleBallInHand()
-{
-    if (Input.GetMouseButton(0))
-    {
-        Ray ray = overheadCamera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 100f))
-        {
-            Vector3 newPosition = new Vector3(hit.point.x, cueBall.transform.position.y, hit.point.z);
-
-            // Check for overlaps with other balls (excluding cue ball itself)
-            Collider[] overlaps = Physics.OverlapSphere(newPosition, 0.05f);
-            bool validPosition = true;
-
-            foreach (var col in overlaps)
+            // Check if all balls have stopped
+            bool allStopped = true;
+            foreach (GameObject ball in GameObject.FindGameObjectsWithTag("Ball"))
             {
-                if (col.gameObject != cueBall && col.CompareTag("Ball"))
+                if (ball.GetComponent<Rigidbody>().linearVelocity.magnitude >= movementThreshold)
                 {
-                    validPosition = false;
+                    allStopped = false;
                     break;
                 }
             }
 
-            if (validPosition)
+            if (allStopped)
             {
-                cueBall.transform.position = newPosition;
-                cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-                cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-                isCueBallPlaced = true;
+                if (cueBallShotInProgress)
+                {
+                    if (!cueBallHitOtherBall)
+                    {
+                        UnityEngine.Debug.Log("Foul: Cue ball did not hit any other ball");
+                        HandleFoul();
+                    }
+
+                    cueBallShotInProgress = false;
+                }
+
+                firstHit = true; // Reset first hit for the next player
+                CheckCushionFoul();
+                isWaitingForBallMovementToStop = false;
+
+                // Only skip to next player if necessary
+                if (willSwapPlayers || !ballPocketed)
+                {
+                    NextPlayerTurn();
+                }
+                else
+                {
+                    SwitchCameras();
+                }
+
+                currentTimer = shotTimer;
+                ballPocketed = false;
             }
         }
     }
 
-    if (Input.GetMouseButtonDown(1) && isCueBallPlaced) // Right-click to confirm
+
+    void HandleBallInHand()
     {
-        isBallInHand = false;
-        isCueBallPlaced = false;
-        messageText.gameObject.SetActive(false);
+        cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        cueStickCamera.enabled = false;
+        overheadCamera.enabled = true;
+        currentCamera = overheadCamera;
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = overheadCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100f))
+            {
+                Vector3 newPosition = new Vector3(hit.point.x, cueBall.transform.position.y, hit.point.z);
 
-        // Restore collisions
-        cueBall.layer = defaultCueBallLayer;
-        cueBall.GetComponent<Collider>().isTrigger = false;
-        cueBall.GetComponent<Rigidbody>().useGravity = true;
+                // Check for overlaps with other balls (excluding cue ball itself)
+                Collider[] overlaps = Physics.OverlapSphere(newPosition, 0.05f);
+                bool validPosition = true;
 
-        // Switch back to cue camera and start waiting for shot
-        currentCamera = overheadCamera; // so SwitchCameras knows what to toggle
-        SwitchCameras();
+                foreach (var col in overlaps)
+                {
+                    if (col.gameObject != cueBall && col.CompareTag("Ball"))
+                    {
+                        validPosition = false;
+                        break;
+                    }
+                }
+
+                if (validPosition)
+                {
+                    cueBall.transform.position = newPosition;
+                    cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+                    cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+                    isCueBallPlaced = true;
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonDown(1) && isCueBallPlaced) // Right-click to confirm
+        {
+            cueStickCamera.gameObject.SetActive(true);
+            isBallInHand = false;
+            isCueBallPlaced = false;
+            messageText.gameObject.SetActive(false);
+
+            // Restore collisions
+            cueBall.layer = defaultCueBallLayer;
+            cueBall.GetComponent<Collider>().isTrigger = false;
+            cueBall.GetComponent<Rigidbody>().useGravity = true;
+
+            // Switch back to cue camera and start waiting for shot
+            currentCamera = overheadCamera; // so SwitchCameras knows what to toggle
+            SwitchCameras();
 
 
-        currentTimer = shotTimer; // restart movement check delay
+            currentTimer = shotTimer; // restart movement check delay
+        }
     }
-}
 
 
 
     public void HandleFoul()
     {
+        cueStickCamera.gameObject.SetActive(false);
+        DidBallHitCushionOrPocket = false;
+
         // Switch players
         if (currentPlayer == CurrentPlayer.Player1)
         {
@@ -238,6 +271,7 @@ public class GameManager : MonoBehaviour
         }
         willSwapPlayers = true;
         HandleFoul();
+        SwitchCameras();
         return false;
     }
 
@@ -342,6 +376,9 @@ public class GameManager : MonoBehaviour
 
     void NextPlayerTurn()
     {
+        // Reset foul tracking at the start of the turn
+        DidBallHitCushionOrPocket = false;
+
         if (currentPlayer == CurrentPlayer.Player1)
         {
             currentPlayer = CurrentPlayer.Player2;
@@ -361,6 +398,7 @@ public class GameManager : MonoBehaviour
         if (other.gameObject.tag == "Ball")
         {
             ballPocketed = true;
+            RegisterCushionOrPocket();
             if (CheckBall(other.gameObject.GetComponent<Ball>()))
             {
                 Destroy(other.gameObject);
@@ -373,4 +411,68 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    public void RegisterFirstHit(GameObject hitBall)
+    {
+        Ball ball = hitBall.GetComponent<Ball>();
+
+        if (ball == null || !firstHit)
+        {
+            return;
+        }
+
+        if (breakingShot)
+        {
+            breakingShot = false;
+            firstHit = false;
+            return;
+        }
+
+        bool foul = false;
+
+        if (ball.IsEightBall())
+        {
+            // Only legal if player is on the 8-ball (end game)
+            if (currentPlayer == CurrentPlayer.Player1 && !isWinningShotForPlayer1) foul = true;
+            if (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2) foul = true;
+        }
+        else if (ball.IsBallRed() && currentPlayer != CurrentPlayer.Player1)
+        {
+            foul = true;
+        }
+        else if (!ball.IsBallRed() && !ball.IsEightBall() && currentPlayer != CurrentPlayer.Player2)
+        {
+            foul = true;
+        }
+
+        if (foul)
+        {
+            UnityEngine.Debug.Log("Foul: Wrong ball hit first");
+            HandleFoul();
+        }
+        firstHit = false;
+    }
+
+
+
+    public void RegisterCushionOrPocket()
+    {
+        DidBallHitCushionOrPocket = true;
+    }
+
+    void CheckCushionFoul()
+    {
+        if (!DidBallHitCushionOrPocket)
+        {
+            UnityEngine.Debug.Log("Foul: No ball hit a cushion or pocket");
+            HandleFoul();
+        }
+    }
+    public void CueBallShotStarted()
+    {
+        cueBallShotInProgress = true;
+        cueBallHitOtherBall = false;
+    }
+
+
 }
