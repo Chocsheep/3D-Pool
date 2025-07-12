@@ -22,7 +22,12 @@ public class Ball : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (rb.linearVelocity.magnitude > 0)
+        if (rb.linearVelocity.magnitude < 0.02f)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+        else
         {
             Vector3 newVelocity = rb.linearVelocity;
             newVelocity.y = 0f;
