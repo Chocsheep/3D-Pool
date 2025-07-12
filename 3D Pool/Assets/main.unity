@@ -10510,9 +10510,9 @@ MonoBehaviour:
   rotationSpeed: 720
   offset: {x: 1.5, y: 0.88, z: 0}
   downAngle: 27
-  power: 0.25
+  power: 0.3
   cueStick: {fileID: 6909909669552108114}
-  maxDrawDistance: -20
+  maxDrawDistance: -15
   powerText: {fileID: 1314853240}
 --- !u!1001 &1545443049
 PrefabInstance:

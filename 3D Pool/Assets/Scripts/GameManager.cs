@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
     bool isBallInHand = false;
     GameObject cueBall;
     int defaultCueBallLayer;
-
+    private bool isCueBallPlaced = false;
 
 
 
@@ -63,95 +63,110 @@ public class GameManager : MonoBehaviour
 
     // Update is called once per frame
     void Update()
+{
+    // Step 1: Handle Ball-in-Hand placement
+    if (isBallInHand)
     {
-        if (isWaitingForBallMovementToStop && !isGameOver)
+        HandleBallInHand();
+        return;
+    }
+
+    // Step 2: Handle post-shot waiting logic
+    if (isWaitingForBallMovementToStop && !isGameOver)
+    {
+        // Wait for the currentTimer buffer (e.g. 3 seconds)
+        currentTimer -= Time.deltaTime;
+        if (currentTimer > 0)
         {
-            currentTimer -= Time.deltaTime;
-            if (currentTimer > 0)
+            return;
+        }
+
+        // Check if all balls have stopped
+        bool allStopped = true;
+        foreach (GameObject ball in GameObject.FindGameObjectsWithTag("Ball"))
+        {
+            if (ball.GetComponent<Rigidbody>().linearVelocity.magnitude >= movementThreshold)
             {
-                return;
+                allStopped = false;
+                break;
             }
-            bool allStopped = true;
-            foreach (GameObject ball in GameObject.FindGameObjectsWithTag("Ball"))
+        }
+
+        if (allStopped)
+        {
+            isWaitingForBallMovementToStop = false;
+
+            // Only skip to next player if necessary
+            if (willSwapPlayers || !ballPocketed)
             {
-                if (ball.GetComponent<Rigidbody>().linearVelocity.magnitude >= movementThreshold)
+                NextPlayerTurn();
+            }
+            else
+            {
+                SwitchCameras();
+            }
+
+            currentTimer = shotTimer;
+            ballPocketed = false;
+        }
+    }
+}
+
+
+    void HandleBallInHand()
+{
+    if (Input.GetMouseButton(0))
+    {
+        Ray ray = overheadCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 100f))
+        {
+            Vector3 newPosition = new Vector3(hit.point.x, cueBall.transform.position.y, hit.point.z);
+
+            // Check for overlaps with other balls (excluding cue ball itself)
+            Collider[] overlaps = Physics.OverlapSphere(newPosition, 0.05f);
+            bool validPosition = true;
+
+            foreach (var col in overlaps)
+            {
+                if (col.gameObject != cueBall && col.CompareTag("Ball"))
                 {
-                    allStopped = false;
+                    validPosition = false;
                     break;
                 }
             }
-            if (allStopped)
+
+            if (validPosition)
             {
-                isWaitingForBallMovementToStop = false;
-
-                if (isBallInHand)
-                {
-                    // Don't switch turns or cameras; let user place the ball
-                    return;
-                }
-
-                if (willSwapPlayers || !ballPocketed)
-                {
-                    NextPlayerTurn();
-                }
-                else
-                {
-                    SwitchCameras();
-                }
-                currentTimer = shotTimer;
-                ballPocketed = false;
+                cueBall.transform.position = newPosition;
+                cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+                cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+                isCueBallPlaced = true;
             }
         }
-    if (isBallInHand)
+    }
+
+    if (Input.GetMouseButtonDown(1) && isCueBallPlaced) // Right-click to confirm
     {
-        if (Input.GetMouseButton(0))
-        {
-            Ray ray = overheadCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit, 100f))
-            {
-                Vector3 newPosition = new Vector3(hit.point.x, cueBall.transform.position.y, hit.point.z);
+        isBallInHand = false;
+        isCueBallPlaced = false;
+        messageText.gameObject.SetActive(false);
 
-                // Check for overlaps with other balls (excluding cue ball itself)
-                Collider[] overlaps = Physics.OverlapSphere(newPosition, 0.05f);
-                bool validPosition = true;
+        // Restore collisions
+        cueBall.layer = defaultCueBallLayer;
+        cueBall.GetComponent<Collider>().isTrigger = false;
+        cueBall.GetComponent<Rigidbody>().useGravity = true;
 
-                foreach (var col in overlaps)
-                {
-                    if (col.gameObject != cueBall && col.CompareTag("Ball"))
-                    {
-                        validPosition = false;
-                        break;
-                    }
-                }
+        // Switch back to cue camera and start waiting for shot
+        currentCamera = overheadCamera; // so SwitchCameras knows what to toggle
+        SwitchCameras();
 
-                if (validPosition)
-                {
-                    cueBall.transform.position = newPosition;
-                    cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-                    cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-                }
-            }
-        }
 
-        if (Input.GetMouseButtonDown(1)) // Right-click to confirm
-        {
-            isBallInHand = false;
-            messageText.gameObject.SetActive(false);
-
-            // Restore collisions
-            cueBall.layer = defaultCueBallLayer;
-            cueBall.GetComponent<Collider>().isTrigger = false;
-
-            currentCamera = overheadCamera; // force camera state so SwitchCameras works
-            cueBall.GetComponent<Rigidbody>().useGravity = true; // Re-enable gravity
-            SwitchCameras();
-        }
-
-        return; // prevent rest of Update from running
+        currentTimer = shotTimer; // restart movement check delay
     }
+}
 
-    }
+
 
     public void HandleFoul()
     {
@@ -173,10 +188,6 @@ public class GameManager : MonoBehaviour
 
         cueBall.layer = LayerMask.NameToLayer("GhostBall"); // Disable collisions
         cueBall.GetComponent<Collider>().isTrigger = true;
-
-        currentCamera = overheadCamera;
-        overheadCamera.enabled = true;
-        cueStickCamera.enabled = false;
 
         messageText.gameObject.SetActive(true);
         messageText.text = "Foul! Move the cue ball anywhere. Right-click to confirm.";
