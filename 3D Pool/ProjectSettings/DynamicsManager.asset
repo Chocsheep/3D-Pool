@@ -10,15 +10,15 @@ PhysicsManager:
   m_DefaultMaxDepenetrationVelocity: 10
   m_SleepThreshold: 0.005
   m_DefaultContactOffset: 0.01
-  m_DefaultSolverIterations: 60
-  m_DefaultSolverVelocityIterations: 60
+  m_DefaultSolverIterations: 255
+  m_DefaultSolverVelocityIterations: 255
   m_QueriesHitBackfaces: 0
   m_QueriesHitTriggers: 1
   m_EnableAdaptiveForce: 0
   m_ClothInterCollisionDistance: 0
   m_ClothInterCollisionStiffness: 0
   m_LayerCollisionMatrix: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-  m_SimulationMode: 0
+  m_SimulationMode: 1
   m_AutoSyncTransforms: 0
   m_ReuseCollisionCallbacks: 1
   m_InvokeCollisionCallbacks: 1
@@ -26,11 +26,11 @@ PhysicsManager:
   m_ClothGravity: {x: 0, y: -9.81, z: 0}
   m_ContactPairsMode: 0
   m_BroadphaseType: 0
-  m_FrictionType: 0
+  m_FrictionType: 2
   m_EnableEnhancedDeterminism: 0
   m_ImprovedPatchFriction: 0
   m_GenerateOnTriggerStayEvents: 1
-  m_SolverType: 0
+  m_SolverType: 1
   m_DefaultMaxAngularSpeed: 7
   m_ScratchBufferChunkCount: 4
   m_CurrentBackendId: 4072204805

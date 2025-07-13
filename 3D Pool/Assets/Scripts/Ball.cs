@@ -92,10 +92,10 @@ public class Ball : MonoBehaviour
             Ball other = collision.gameObject.GetComponent<Ball>();
             if (other != null && !other.IsClueBall())
             {
-                // ✅ Foul detection: wrong ball first
+                // Foul detection: wrong ball first
                 FindFirstObjectByType<GameManager>().RegisterFirstHit(collision.gameObject);
 
-                // ✅ Cue ball made valid contact
+                // Cue ball made valid contact
                 FindFirstObjectByType<GameManager>().cueBallHitOtherBall = true;
             }
         }

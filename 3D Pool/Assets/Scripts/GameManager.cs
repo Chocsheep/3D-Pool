@@ -181,6 +181,7 @@ public class GameManager : MonoBehaviour
             isBallInHand = false;
             isCueBallPlaced = false;
             messageText.gameObject.SetActive(false);
+            cueBall.layer = defaultCueBallLayer;
 
             // Restore collisions
             cueBall.layer = defaultCueBallLayer;
@@ -190,7 +191,7 @@ public class GameManager : MonoBehaviour
             // Switch back to cue camera and start waiting for shot
             currentCamera = overheadCamera; // so SwitchCameras knows what to toggle
             SwitchCameras();
-
+            firstHit = true;
 
             currentTimer = shotTimer; // restart movement check delay
         }
@@ -204,16 +205,7 @@ public class GameManager : MonoBehaviour
         DidBallHitCushionOrPocket = false;
 
         // Switch players
-        if (currentPlayer == CurrentPlayer.Player1)
-        {
-            currentPlayer = CurrentPlayer.Player2;
-            currentTurnText.text = "Current Turn: Player 2";
-        }
-        else
-        {
-            currentPlayer = CurrentPlayer.Player1;
-            currentTurnText.text = "Current Turn: Player 1";
-        }
+        NextPlayerTurn();
 
         isBallInHand = true;
         isWaitingForBallMovementToStop = false;
@@ -391,6 +383,7 @@ public class GameManager : MonoBehaviour
         }
         willSwapPlayers = false;
         SwitchCameras();
+        UnityEngine.Debug.Log("Player's Turn: " + currentPlayer);
     }
 
     void OnTriggerEnter(Collider other)
@@ -398,6 +391,7 @@ public class GameManager : MonoBehaviour
         if (other.gameObject.tag == "Ball")
         {
             ballPocketed = true;
+            UnityEngine.Debug.Log("Ball Pocketed: " + other.gameObject.name);
             RegisterCushionOrPocket();
             if (CheckBall(other.gameObject.GetComponent<Ball>()))
             {
@@ -433,21 +427,34 @@ public class GameManager : MonoBehaviour
         if (ball.IsEightBall())
         {
         if ((currentPlayer == CurrentPlayer.Player1 && !isWinningShotForPlayer1) ||
-            (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2))
-        {
-            UnityEngine.Debug.Log("Foul: Hit the 8-ball too early");
-            foul = true;
-        }
+                (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2))
+            {
+                UnityEngine.Debug.Log("Foul: Hit the 8-ball too early");
+                foul = true;
+            }
         // Else: valid 8-ball shot (on winning shot), no foul
         }
         else if (ball.IsBallRed() && currentPlayer != CurrentPlayer.Player1)
         {
+            // Player 2 hit a red ball first (wrong group)
             foul = true;
         }
-        else if (!ball.IsBallRed() && !ball.IsEightBall() && currentPlayer != CurrentPlayer.Player2)
+        else if (!ball.IsBallRed() && !ball.IsEightBall() && !ball.IsClueBall() && currentPlayer != CurrentPlayer.Player2)
         {
+            // Player 1 hit a blue ball first (wrong group)
             foul = true;
         }
+
+        else if (ball.IsEightBall())
+        {
+            // Already handled above, but double-check for safety
+            if ((currentPlayer == CurrentPlayer.Player1 && !isWinningShotForPlayer1) ||
+            (currentPlayer == CurrentPlayer.Player2 && !isWinningShotForPlayer2))
+            {
+            foul = true;
+            }
+        }
+        // You could add more cases here for custom rules, e.g. hitting no ball at all, etc.
 
         if (foul)
         {
