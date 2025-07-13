@@ -1627,6 +1627,7 @@ MonoBehaviour:
   headPosition: {fileID: 1146818271}
   cueStickCamera: {fileID: 1538190055}
   overheadCamera: {fileID: 1269730862}
+  cueBallHitOtherBall: 0
 --- !u!1001 &344859626
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10512,7 +10513,7 @@ MonoBehaviour:
   downAngle: 27
   power: 0.3
   cueStick: {fileID: 6909909669552108114}
-  maxDrawDistance: -15
+  maxDrawDistance: -10
   powerText: {fileID: 1314853240}
 --- !u!1001 &1545443049
 PrefabInstance:
