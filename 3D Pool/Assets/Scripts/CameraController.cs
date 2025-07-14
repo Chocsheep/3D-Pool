@@ -25,6 +25,11 @@ public class CameraController : MonoBehaviour
 
     UnityEngine.Vector3 originalPowerBarPos;
     [SerializeField] Gradient powerGradient;
+    [SerializeField] AudioSource cueAudioSource;
+    [SerializeField] AudioClip lightHitSound;
+    [SerializeField] AudioClip mediumHitSound;
+    [SerializeField] AudioClip heavyHitSound;
+
 
 
 
@@ -110,6 +115,21 @@ public class CameraController : MonoBehaviour
                     hitDirection = new UnityEngine.Vector3(hitDirection.x, 0, hitDirection.z).normalized;
 
                     cueBall.gameObject.GetComponent<Rigidbody>().AddForce(hitDirection * power * Mathf.Abs(savedMousePosition), ForceMode.Impulse);
+                    float force = power * Mathf.Abs(savedMousePosition);
+                    cueBall.gameObject.GetComponent<Rigidbody>().AddForce(hitDirection * force, ForceMode.Impulse);
+
+                    // 🔊 Choose sound based on power
+                    AudioClip chosenClip;
+                    float powerPercent = Mathf.Clamp(((savedMousePosition / maxDrawDistance) * 100f), 0f, 100f);
+
+                    if (powerPercent < 30f)
+                        chosenClip = lightHitSound;
+                    else if (powerPercent < 80f)
+                        chosenClip = mediumHitSound;
+                    else
+                        chosenClip = heavyHitSound;
+
+                    cueAudioSource.PlayOneShot(chosenClip);
                     FindFirstObjectByType<GameManager>().CueBallShotStarted();
                     cueStick.SetActive(false);
                     gameManager.SwitchCameras();
