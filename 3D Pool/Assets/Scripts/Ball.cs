@@ -5,6 +5,10 @@ public class Ball : MonoBehaviour
     private bool isRed;
     private bool is8ball = false;
     private bool isCueBall = false;
+    [SerializeField] AudioClip[] collisionSounds;
+    [SerializeField] float minCollisionVolume = 0.1f;
+    [SerializeField] float maxCollisionVolume = 1.0f;
+    private AudioSource audioSource;
 
     Rigidbody rb;
 
@@ -12,6 +16,7 @@ public class Ball : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -77,6 +82,23 @@ public class Ball : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+    // Avoid double sound by checking which object should handle the sound
+    if (collision.gameObject.CompareTag("Ball") &&
+        gameObject.GetInstanceID() < collision.gameObject.GetInstanceID())
+    {
+        float impact = collision.relativeVelocity.magnitude;
+
+        if (impact > 0.1f && collisionSounds.Length > 0)
+        {
+            float volume = Mathf.Clamp(impact / 5f, minCollisionVolume, maxCollisionVolume);
+
+            int index = Random.Range(0, collisionSounds.Length);
+            audioSource.pitch = Random.Range(0.95f, 1.05f);
+            audioSource.PlayOneShot(collisionSounds[index], volume);
+            audioSource.pitch = 1f;
+        }
+    }
+
         Ball self = GetComponent<Ball>();
         if (!self.IsClueBall()) return;
 
