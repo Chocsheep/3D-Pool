@@ -8,7 +8,11 @@ public class MusicPlayer : MonoBehaviour
 
     [SerializeField] List<AudioClip> playlist;
     [SerializeField] AudioSource audioSource;
+
+    [SerializeField] bool shuffleEnabled = true; // Toggle this in Inspector
+
     private int currentTrackIndex = 0;
+    private List<int> shuffledIndices = new List<int>();
 
     void Awake()
     {
@@ -25,7 +29,16 @@ public class MusicPlayer : MonoBehaviour
 
     void Start()
     {
-        if (playlist.Count > 0 && audioSource != null && !audioSource.isPlaying)
+        if (playlist.Count == 0 || audioSource == null) return;
+
+        // Prepare shuffled list if needed
+        if (shuffleEnabled)
+        {
+            shuffledIndices = Enumerable.Range(0, playlist.Count).OrderBy(i => Random.value).ToList();
+            currentTrackIndex = 0;
+            PlayTrack(shuffledIndices[currentTrackIndex]);
+        }
+        else
         {
             PlayTrack(currentTrackIndex);
         }
@@ -50,7 +63,23 @@ public class MusicPlayer : MonoBehaviour
 
     void PlayNextTrack()
     {
-        currentTrackIndex = (currentTrackIndex + 1) % playlist.Count;
-        PlayTrack(currentTrackIndex);
+        currentTrackIndex++;
+
+        if (shuffleEnabled)
+        {
+            if (currentTrackIndex >= shuffledIndices.Count)
+            {
+                // Reshuffle for next loop
+                shuffledIndices = Enumerable.Range(0, playlist.Count).OrderBy(i => Random.value).ToList();
+                currentTrackIndex = 0;
+            }
+
+            PlayTrack(shuffledIndices[currentTrackIndex]);
+        }
+        else
+        {
+            currentTrackIndex = currentTrackIndex % playlist.Count;
+            PlayTrack(currentTrackIndex);
+        }
     }
 }
