@@ -53,6 +53,7 @@ public class GameManager : MonoBehaviour
 
     private List<GameObject> redIcons = new List<GameObject>();
     private List<GameObject> blueIcons = new List<GameObject>();
+    [SerializeField] Transform currentPlayerPanel;
 
 
 
@@ -405,11 +406,13 @@ public class GameManager : MonoBehaviour
         {
             currentPlayer = CurrentPlayer.Player2;
             currentTurnText.text = "Current Turn: Player 2";
+            currentPlayerPanel.GetComponent<Image>().color = new Color32(0, 0, 255, 200);
         }
         else
         {
             currentPlayer = CurrentPlayer.Player1;
             currentTurnText.text = "Current Turn: Player 1";
+            currentPlayerPanel.GetComponent<Image>().color = new Color32(255, 0, 0, 200);
         }
         willSwapPlayers = false;
         SwitchCameras();
