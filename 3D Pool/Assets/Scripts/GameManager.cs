@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -46,6 +47,13 @@ public class GameManager : MonoBehaviour
     private bool firstHit = true;
     private bool cueBallShotInProgress = false;
     public bool cueBallHitOtherBall = false;
+    [SerializeField] Transform redBallPanel;
+    [SerializeField] Transform blueBallPanel;
+    [SerializeField] GameObject ballIconPrefab;
+
+    private List<GameObject> redIcons = new List<GameObject>();
+    private List<GameObject> blueIcons = new List<GameObject>();
+
 
 
 
@@ -55,6 +63,11 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        currentPlayer = CurrentPlayer.Player1;
+        currentCamera = cueStickCamera;
+        currentTimer = shotTimer;
+
+        InitBallIcons();
         breakingShot = true;
         DidBallHitCushionOrPocket = false;
 
@@ -72,6 +85,19 @@ public class GameManager : MonoBehaviour
         }
         defaultCueBallLayer = cueBall.layer;
     }
+    void InitBallIcons()
+{
+    for (int i = 0; i < 7; i++)
+    {
+        GameObject redIcon = Instantiate(ballIconPrefab, redBallPanel);
+        redIcons.Add(redIcon);
+
+        GameObject blueIcon = Instantiate(ballIconPrefab, blueBallPanel);
+        blueIcon.GetComponent<Image>().color = Color.blue;
+        blueIcons.Add(blueIcon);
+    }
+}
+
 
     // Update is called once per frame
     void Update()
@@ -323,28 +349,32 @@ public class GameManager : MonoBehaviour
             if (ball.IsBallRed())
             {
                 player1BallsRemaining--;
-                player1BallsText.text = "Player 1 (Red) Balls Remaining: " + player1BallsRemaining;
+
+
+                // Hide one red icon
+                if (player1BallsRemaining >= 0 && player1BallsRemaining < redIcons.Count)
+                    redIcons[player1BallsRemaining].SetActive(false);
+
                 if (player1BallsRemaining <= 0)
-                {
                     isWinningShotForPlayer1 = true;
-                }
+
                 if (currentPlayer != CurrentPlayer.Player1)
-                {
                     willSwapPlayers = true;
-                }
             }
             else
             {
                 player2BallsRemaining--;
-                player2BallsText.text = "Player 2 (Blue) Balls Remaining: " + player2BallsRemaining;
+
+
+                // Hide one blue icon
+                if (player2BallsRemaining >= 0)
+                    blueIcons[player2BallsRemaining].SetActive(false);
+
                 if (player2BallsRemaining <= 0)
-                {
                     isWinningShotForPlayer2 = true;
-                }
+
                 if (currentPlayer != CurrentPlayer.Player2)
-                {
                     willSwapPlayers = true;
-                }
             }
         }
         return true;

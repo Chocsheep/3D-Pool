@@ -25,20 +25,20 @@ public class Ball : MonoBehaviour
 
     }
 
-    private void FixedUpdate()
+private void FixedUpdate()
+{
+    Vector3 vel = rb.linearVelocity;
+    vel.y = 0f;
+    rb.linearVelocity = vel;
+
+    if (vel.magnitude < 0.01f)
     {
-        if (rb.linearVelocity.magnitude < 0.02f)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
-        else
-        {
-            Vector3 newVelocity = rb.linearVelocity;
-            newVelocity.y = 0f;
-            rb.linearVelocity = newVelocity;
-        }
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
+}
+
+
 
     public bool IsBallRed()
     {
