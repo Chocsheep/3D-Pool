@@ -50,6 +50,7 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (PauseMenu.GameIsPaused) return; // Prevent input while paused
         if (cueBall != null && !isTakingShot)
         {
             horizontalInput = Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
