@@ -115,7 +115,7 @@ public class CameraController : MonoBehaviour
                     float force = power * Mathf.Abs(savedMousePosition);
                     cueBall.gameObject.GetComponent<Rigidbody>().AddForce(hitDirection * force, ForceMode.Impulse);
 
-                    // 🔊 Choose sound based on power
+                    // Choose sound based on power
                     AudioClip chosenClip;
                     float powerPercent = Mathf.Clamp(((savedMousePosition / maxDrawDistance) * 100f), 0f, 100f);
 
