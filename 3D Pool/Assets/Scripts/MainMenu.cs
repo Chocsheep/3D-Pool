@@ -16,10 +16,8 @@ public class MainMenu : MonoBehaviour
     }
         public void LoadGameScene()
     {
-        // Replace with your actual scene name (case-sensitive)
         LoadingScreen.Instance.Load(1);
         
-        // Or load by build index (e.g., 1)
         // LoadingScreen.Instance.Load(1);
     }
 }

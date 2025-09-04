@@ -3951,7 +3951,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1781949194303238870, guid: 4e35892e4c5444340a0e2189311808e5, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1958104079}
+      addedObject: {fileID: 1958104084}
   m_SourcePrefab: {fileID: 100100000, guid: 4e35892e4c5444340a0e2189311808e5, type: 3}
 --- !u!1001 &697221351
 PrefabInstance:
@@ -15443,7 +15443,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1781949194303238870, guid: 4e35892e4c5444340a0e2189311808e5, type: 3}
   m_PrefabInstance: {fileID: 694656502}
   m_PrefabAsset: {fileID: 0}
---- !u!108 &1958104079
+--- !u!108 &1958104084
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15453,7 +15453,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 2
-  m_Color: {r: 1, g: 1, b: 0.25490198, a: 1}
+  m_Color: {r: 1, g: 0.72718096, b: 0.0745098, a: 1}
   m_Intensity: 2
   m_Range: 3
   m_SpotAngle: 30
@@ -15493,7 +15493,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1

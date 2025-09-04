@@ -40,7 +40,7 @@ public class PauseMenu : MonoBehaviour
     {
         Time.timeScale = 1f;
         GameIsPaused = false; // Also reset the paused flag
-        SceneManager.LoadScene(0); // change to your menu scene name
+        SceneManager.LoadScene(0); 
     }
 
     public void QuitGame()
