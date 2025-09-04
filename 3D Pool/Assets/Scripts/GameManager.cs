@@ -167,6 +167,8 @@ public class GameManager : MonoBehaviour
 
     void HandleBallInHand()
     {
+        var rb = cueBall.GetComponent<Rigidbody>();
+        rb.interpolation = RigidbodyInterpolation.None;
         cueBall.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         cueStickCamera.enabled = false;
         overheadCamera.enabled = true;
@@ -204,6 +206,7 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1) && isCueBallPlaced) // Right-click to confirm
         {
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
             cueStickCamera.gameObject.SetActive(true);
             isBallInHand = false;
             isCueBallPlaced = false;
